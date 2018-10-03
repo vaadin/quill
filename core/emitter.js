@@ -1,9 +1,10 @@
 import EventEmitter from 'eventemitter3';
 import instances from './instances';
 import logger from './logger';
+import { SHADOW_SELECTIONCHANGE } from './shadow-selection-polyfill';
 
 const debug = logger('quill:events');
-const EVENTS = ['selectionchange', 'mousedown', 'mouseup', 'click'];
+const EVENTS = [SHADOW_SELECTIONCHANGE, 'mousedown', 'mouseup', 'click'];
 const EMITTERS = [];
 
 EVENTS.forEach(eventName => {
