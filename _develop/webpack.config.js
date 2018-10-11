@@ -140,7 +140,8 @@ module.exports = function(env) {
 
   if (env && env.minimize) {
     config.entry = {
-      'quill.min.js': './quill.js'
+      'quill.min.js': './quill.js',
+      'vaadin-quill.min.js': './vaadin-quill.js'
     };
     config.plugins.push(
       new webpack.optimize.UglifyJsPlugin({

@@ -25,8 +25,8 @@ import Video from './formats/video';
 
 import CodeBlock, { Code as InlineCode } from './formats/code';
 
-import Formula from './modules/formula';
-import Syntax from './modules/syntax';
+// import Formula from './modules/formula';
+// import Syntax from './modules/syntax';
 import Toolbar from './modules/toolbar';
 
 // import Icons from './ui/icons';
@@ -86,8 +86,8 @@ Quill.register({
 
   'formats/list/item': ListItem,
 
-  'modules/formula': Formula,
-  'modules/syntax': Syntax,
+  // 'modules/formula': Formula,
+  // 'modules/syntax': Syntax,
   'modules/toolbar': Toolbar
 
   // 'themes/bubble': BubbleTheme,
