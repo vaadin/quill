@@ -222,13 +222,33 @@ function ignoredTrailingSpace(node) {
   return trailingSpaceCount - 1; // always allow single last
 }
 
+const cachedRange = new Map();
+
+export function addRange(root, selection, range) {
+  if (cachedRange.has(root)) {
+    cachedRange.delete(root);
+    cachedRange.set(root, range);
+  }
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
 export function getRange(root) {
   if (hasSelection || useDocument) {
     const s = (useDocument ? document : root).getSelection();
     return s.rangeCount ? s.getRangeAt(0) : null;
   }
 
+  const thisFrame = cachedRange.get(root);
+  if (thisFrame) {
+    return thisFrame;
+  }
+
   const result = internalGetShadowSelection(root);
+  cachedRange.set(root, result.range);
+  window.setTimeout(() => {
+    cachedRange.delete(root);
+  }, 0);
 
   return result.range;
 }

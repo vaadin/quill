@@ -3,7 +3,7 @@ import clone from 'clone';
 import equal from 'deep-equal';
 import Emitter from './emitter';
 import logger from './logger';
-import { SHADOW_SELECTIONCHANGE, getRange } from './shadow-selection-polyfill';
+import { SHADOW_SELECTIONCHANGE, getRange, addRange } from './shadow-selection-polyfill';
 
 let debug = logger('quill:selection');
 
@@ -290,8 +290,7 @@ class Selection {
         let range = document.createRange();
         range.setStart(startNode, startOffset);
         range.setEnd(endNode, endOffset);
-        selection.removeAllRanges();
-        selection.addRange(range);
+        addRange(this.rootDocument, selection, range);
       }
     } else {
       selection.removeAllRanges();
