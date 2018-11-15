@@ -25,6 +25,8 @@ const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) ||
   /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const useDocument = !hasShadow || hasShady || (!hasSelection && !isSafari);
 
+export const usePolyfill = !(hasSelection || useDocument);
+
 const validNodeTypes = [Node.ELEMENT_NODE, Node.TEXT_NODE, Node.DOCUMENT_FRAGMENT_NODE];
 function isValidNode(node) {
   return validNodeTypes.includes(node.nodeType);
@@ -57,7 +59,7 @@ function findNode(s, parentNode, isLeft) {
  * @param {function(!Event)} fn to add to selectionchange internals
  */
 const addInternalListener = (() => {
-  if (hasSelection || useDocument) {
+  if (!usePolyfill) {
     // getSelection exists or document API can be used
     document.addEventListener('selectionchange', () => {
       document.dispatchEvent(new CustomEvent(SHADOW_SELECTIONCHANGE));
@@ -76,7 +78,7 @@ const addInternalListener = (() => {
     withinInternals = true;
     window.setTimeout(() => {
       withinInternals = false;
-    }, 2); // FIXME: should be > 1 to prevent infinite Selection.update() loop
+    }, 0);
     handlers.forEach((fn) => fn(ev));
   });
 
@@ -234,7 +236,7 @@ export function addRange(root, selection, range) {
 }
 
 export function getRange(root) {
-  if (hasSelection || useDocument) {
+  if (!usePolyfill) {
     const s = (useDocument ? document : root).getSelection();
     return s.rangeCount ? s.getRangeAt(0) : null;
   }

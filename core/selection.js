@@ -3,7 +3,7 @@ import clone from 'clone';
 import equal from 'deep-equal';
 import Emitter from './emitter';
 import logger from './logger';
-import { SHADOW_SELECTIONCHANGE, getRange, addRange } from './shadow-selection-polyfill';
+import { SHADOW_SELECTIONCHANGE, getRange, addRange, usePolyfill } from './shadow-selection-polyfill';
 
 let debug = logger('quill:selection');
 
@@ -29,11 +29,13 @@ class Selection {
     this.lastRange = this.savedRange = new Range(0, 0);
     this.handleComposition();
     this.handleDragging();
-    this.emitter.listenDOM(SHADOW_SELECTIONCHANGE, document, () => {
-      if (!this.mouseDown) {
-        setTimeout(this.update.bind(this, Emitter.sources.USER), 1);
-      }
-    });
+    if (!usePolyfill) {
+      this.emitter.listenDOM(SHADOW_SELECTIONCHANGE, document, () => {
+        if (!this.mouseDown) {
+          setTimeout(this.update.bind(this, Emitter.sources.USER), 1);
+        }
+      });
+    }
     this.emitter.on(Emitter.events.EDITOR_CHANGE, (type, delta) => {
       if (type === Emitter.events.TEXT_CHANGE && delta.length() > 0) {
         this.update(Emitter.sources.SILENT);
