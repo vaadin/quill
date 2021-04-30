@@ -3,7 +3,6 @@ import clone from 'clone';
 import equal from 'deep-equal';
 import Emitter from './emitter';
 import logger from './logger';
-import { SHADOW_SELECTIONCHANGE, getRange, addRange, usePolyfill } from './shadow-selection-polyfill';
 
 const debug = logger('quill:selection');
 
@@ -28,16 +27,9 @@ class Selection {
     this.lastRange = this.savedRange = new Range(0, 0);
     this.handleComposition();
     this.handleDragging();
-    if (!usePolyfill) {
-      this.emitter.listenDOM(SHADOW_SELECTIONCHANGE, document, () => {
-        if (!this.mouseDown && !this.composing) {
-          setTimeout(this.update.bind(this, Emitter.sources.USER), 1);
-        }
-      });
-    }
-    this.emitter.on(Emitter.events.EDITOR_CHANGE, (type, delta) => {
-      if (type === Emitter.events.TEXT_CHANGE && delta.length() > 0) {
-        this.update(Emitter.sources.SILENT);
+    this.emitter.listenDOM('selectionchange', this.rootDocument, () => {
+      if (!this.mouseDown && !this.composing) {
+        setTimeout(this.update.bind(this, Emitter.sources.USER), 1);
       }
     });
     this.emitter.on(Emitter.events.SCROLL_BEFORE_UPDATE, () => {
@@ -160,7 +152,9 @@ class Selection {
   }
 
   getNativeRange() {
-    let nativeRange = getRange(this.rootDocument);
+    const selection = this.rootDocument.getSelection();
+    if (selection == null || selection.rangeCount <= 0) return null;
+    const nativeRange = selection.getRangeAt(0);
     if (nativeRange == null) return null;
     let range = this.normalizeNative(nativeRange);
     debug.info('getNativeRange', range);
@@ -269,7 +263,7 @@ class Selection {
     if (startNode != null && (this.root.parentNode == null || startNode.parentNode == null || endNode.parentNode == null)) {
       return;
     }
-    let selection = typeof this.rootDocument.getSelection === 'function' ? this.rootDocument.getSelection() : document.getSelection();
+    const selection = this.rootDocument.getSelection();
     if (selection == null) return;
     if (startNode != null) {
       if (!this.hasFocus()) this.root.focus();
@@ -291,7 +285,8 @@ class Selection {
         let range = document.createRange();
         range.setStart(startNode, startOffset);
         range.setEnd(endNode, endOffset);
-        addRange(this.rootDocument, selection, range);
+        selection.removeAllRanges();
+        selection.addRange(range);
       }
     } else {
       selection.removeAllRanges();
