@@ -5,8 +5,7 @@ import Emitter from './emitter';
 import logger from './logger';
 import { SHADOW_SELECTIONCHANGE, getRange, addRange, usePolyfill } from './shadow-selection-polyfill';
 
-let debug = logger('quill:selection');
-
+const debug = logger('quill:selection');
 
 class Range {
   constructor(index, length = 0) {
@@ -31,7 +30,7 @@ class Selection {
     this.handleDragging();
     if (!usePolyfill) {
       this.emitter.listenDOM(SHADOW_SELECTIONCHANGE, document, () => {
-        if (!this.mouseDown) {
+        if (!this.mouseDown && !this.composing) {
           setTimeout(this.update.bind(this, Emitter.sources.USER), 1);
         }
       });
