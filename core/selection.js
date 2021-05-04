@@ -3,6 +3,7 @@ import clone from 'clone';
 import equal from 'deep-equal';
 import Emitter from './emitter';
 import logger from './logger';
+import './shadow-selection-polyfill';
 
 const debug = logger('quill:selection');
 
