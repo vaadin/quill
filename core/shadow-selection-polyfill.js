@@ -8,6 +8,10 @@ class ShadowSelection {
     this._ranges = [];
   }
 
+  get rangeCount() {
+    return this._ranges.length;
+  }
+
   getRangeAt(index) {
     return this._ranges[index];
   }
