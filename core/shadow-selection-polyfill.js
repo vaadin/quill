@@ -3,6 +3,7 @@ const SUPPORTS_SHADOW_SELECTION = typeof window.ShadowRoot.prototype.getSelectio
 const SUPPORTS_BEFORE_INPUT = typeof window.InputEvent.prototype.getTargetRanges === 'function';
 const IS_FIREFOX = window.navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
+let processing = false;
 class ShadowSelection {
   constructor() {
     this._ranges = [];
@@ -18,6 +19,11 @@ class ShadowSelection {
 
   addRange(range) {
     this._ranges.push(range);
+    if (!processing) {
+      let windowSel = window.getSelection();
+      windowSel.removeAllRanges();
+      windowSel.addRange(range);
+    }
   }
 
   removeAllRanges() {
@@ -48,7 +54,6 @@ if (IS_FIREFOX && !SUPPORTS_SHADOW_SELECTION) {
 }
 
 if (!IS_FIREFOX && !SUPPORTS_SHADOW_SELECTION && SUPPORTS_BEFORE_INPUT) {
-  let processing = false;
   let selection = new ShadowSelection();
 
   window.ShadowRoot.prototype.getSelection = function() {
