@@ -4,7 +4,7 @@ const SUPPORTS_BEFORE_INPUT = typeof window.InputEvent.prototype.getTargetRanges
 const IS_FIREFOX = window.navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
 let processing = false;
-class ShadowSelection {
+export class ShadowSelection {
   constructor() {
     this._ranges = [];
   }

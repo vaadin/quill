@@ -4,6 +4,7 @@ import equal from 'deep-equal';
 import Emitter from './emitter';
 import logger from './logger';
 import './shadow-selection-polyfill';
+import { ShadowSelection } from './shadow-selection-polyfill';
 
 const debug = logger('quill:selection');
 
@@ -33,16 +34,36 @@ class Selection {
         setTimeout(this.update.bind(this, Emitter.sources.USER), 1);
       }
     });
-    this.emitter.on(Emitter.events.SCROLL_BEFORE_UPDATE, () => {
+    this.emitter.on(Emitter.events.SCROLL_BEFORE_UPDATE, (_, mutations) => {
       if (!this.hasFocus()) return;
-      let native = this.getNativeRange();
+      const native = this.getNativeRange();
+      // We might need to hack the offset on Safari, when we are dealing with the first character of a row.
+      // This likely happens because of a race condition between quill's update method being called before the
+      // selectionchange event being fired in the selection polyfill.
+      const hackOffset = (native.start.offset === 0 &&
+                          native.start.offset === native.end.offset &&
+                          this.rootDocument.getSelection() instanceof ShadowSelection &&
+                          mutations.some((a) => a.type === 'characterData' && a.oldValue === '')) ? 1 : 0;
       if (native == null) return;
       if (native.start.node === this.cursor.textNode) return;  // cursor.restore() will handle
       // TODO unclear if this has negative side effects
       this.emitter.once(Emitter.events.SCROLL_UPDATE, () => {
         try {
-          this.setNativeRange(native.start.node, native.start.offset, native.end.node, native.end.offset);
-        } catch (ignored) {}
+          if (
+            this.root.contains(native.start.node) &&
+            this.root.contains(native.end.node)
+          ) {
+            this.setNativeRange(
+              native.start.node,
+              native.start.offset + hackOffset,
+              native.end.node,
+              native.end.offset + hackOffset,
+            );
+          }
+          this.update(Emitter.sources.SILENT);
+        } catch (ignored) {
+          // ignore
+        }
       });
     });
     this.emitter.on(Emitter.events.SCROLL_OPTIMIZE, (mutations, context) => {
