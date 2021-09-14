@@ -1,6 +1,6 @@
 // see https://github.com/GoogleChromeLabs/shadow-selection-polyfill/issues/11
 const SUPPORTS_SHADOW_SELECTION = typeof window.ShadowRoot.prototype.getSelection === 'function';
-const SUPPORTS_BEFORE_INPUT = typeof window.InputEvent.prototype.getTargetRanges === 'function';
+const SUPPORTS_BEFORE_INPUT = window.InputEvent && typeof window.InputEvent.prototype.getTargetRanges === 'function';
 const IS_FIREFOX = window.navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IS_MSIE = !!(window.navigator.userAgent.match(/Trident/) && !window.navigator.userAgent.match(/MSIE/));
 const IS_EDGE = window.navigator.userAgent.match(/Edge/);
