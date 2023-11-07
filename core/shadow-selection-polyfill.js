@@ -24,7 +24,7 @@ export class ShadowSelection {
     if (!processing) {
       let windowSel = window.getSelection();
       windowSel.removeAllRanges();
-      windowSel.addRange(range);
+      windowSel.setBaseAndExtent(range.startContainer, range.startOffset, range.endContainer, range.endOffset);
     }
   }
 
