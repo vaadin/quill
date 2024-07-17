@@ -19,13 +19,20 @@ class Emitter extends EventEmitter {
   constructor() {
     super();
     this.listeners = {};
-    EMITTERS.push(this);
     this.on('error', debug.error);
   }
 
   emit() {
     debug.log.apply(debug, arguments);
     super.emit.apply(this, arguments);
+  }
+
+  connect() {
+    EMITTERS.push(this);
+  }
+
+  disconnect() {
+    EMITTERS.splice(EMITTERS.indexOf(this), 1);
   }
 
   handleDOM(event, ...args) {
