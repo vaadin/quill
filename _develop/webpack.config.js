@@ -20,9 +20,24 @@ const constantPack = new DefinePlugin({
   QUILL_VERSION: JSON.stringify(pkg.version),
 });
 
+const source = [
+  'quill.js',
+  'core.js',
+  'vaadin-quill.js',
+  'blots',
+  'core',
+  'formats',
+  'modules',
+  'test',
+  'themes',
+  'ui'
+].map(function(file) {
+  return resolve(__dirname, '..', file);
+});
+
 const jsRules = {
   test: /\.js$/,
-  include: [resolve(__dirname, 'src')],
+  include: source,
   use: ['babel-loader'],
 };
 
@@ -81,6 +96,7 @@ module.exports = function(env) {
     resolve: {
       extensions: ['.js', '.styl']
     },
+    target: ['web', 'es5'],
     module: {
       rules: [jsRules, stylRules, svgRules, sourceMapRules],
     },
