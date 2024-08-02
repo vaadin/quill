@@ -70,6 +70,7 @@
   },
   "scripts": {
     "build": "webpack --config _develop/webpack.config.js",
+    "build:minify": "webpack --config _develop/webpack.config.js --env minimize",
     "build:release": "./_develop/scripts/release.sh",
     "start": "npm run build; bundle exec foreman start -f _develop/procfile",
     "test": "npm run test:unit",
