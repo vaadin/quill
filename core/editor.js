@@ -1,14 +1,12 @@
-import Delta from 'quill-delta';
-import DeltaOp from 'quill-delta/lib/op';
+import cloneDeep from 'lodash.clonedeep';
+import isEqual from 'lodash.isequal';
+import merge from 'lodash.merge';
+import Delta, { AttributeMap } from 'quill-delta';
 import Parchment from 'parchment';
 import CodeBlock from '../formats/code';
 import CursorBlot from '../blots/cursor';
 import Block, { bubbleFormats } from '../blots/block';
 import Break from '../blots/break';
-import clone from 'clone';
-import equal from 'deep-equal';
-import extend from 'extend';
-
 
 const ASCII = /^[ -~]*$/;
 
@@ -40,12 +38,12 @@ class Editor {
           }
           this.scroll.insertAt(index, text);
           let [line, offset] = this.scroll.line(index);
-          let formats = extend({}, bubbleFormats(line));
+          let formats = merge({}, bubbleFormats(line));
           if (line instanceof Block) {
             let [leaf, ] = line.descendant(Parchment.Leaf, offset);
-            formats = extend(formats, bubbleFormats(leaf));
+            formats = merge(formats, bubbleFormats(leaf));
           }
-          attributes = DeltaOp.attributes.diff(formats, attributes) || {};
+          attributes = AttributeMap.diff(formats, attributes) || {};
         } else if (typeof op.insert === 'object') {
           let key = Object.keys(op.insert)[0];  // There should only be one key
           if (key == null) return index;
@@ -93,14 +91,14 @@ class Editor {
       });
     });
     this.scroll.optimize();
-    return this.update(new Delta().retain(index).retain(length, clone(formats)));
+    return this.update(new Delta().retain(index).retain(length, cloneDeep(formats)));
   }
 
   formatText(index, length, formats = {}) {
     Object.keys(formats).forEach((format) => {
       this.scroll.formatAt(index, length, format, formats[format]);
     });
-    return this.update(new Delta().retain(index).retain(length, clone(formats)));
+    return this.update(new Delta().retain(index).retain(length, cloneDeep(formats)));
   }
 
   getContents(index, length) {
@@ -128,7 +126,7 @@ class Editor {
       lines = this.scroll.lines(index, length);
       leaves = this.scroll.descendants(Parchment.Leaf, index, length);
     }
-    let formatsArr = [lines, leaves].map(function(blots) {
+    const [lineFormats, leafFormats] = [lines, leaves].map(function(blots) {
       if (blots.length === 0) return {};
       let formats = bubbleFormats(blots.shift());
       while (Object.keys(formats).length > 0) {
@@ -138,7 +136,7 @@ class Editor {
       }
       return formats;
     });
-    return extend.apply(extend, formatsArr);
+    return { ...lineFormats, ...leafFormats };
   }
 
   getText(index, length) {
@@ -160,7 +158,7 @@ class Editor {
     Object.keys(formats).forEach((format) => {
       this.scroll.formatAt(index, text.length, format, formats[format]);
     });
-    return this.update(new Delta().retain(index).insert(text, clone(formats)));
+    return this.update(new Delta().retain(index).insert(text, cloneDeep(formats)));
   }
 
   isBlank() {
@@ -214,7 +212,7 @@ class Editor {
       this.delta = oldDelta.compose(change);
     } else {
       this.delta = this.getDelta();
-      if (!change || !equal(oldDelta.compose(change), this.delta)) {
+      if (!change || !isEqual(oldDelta.compose(change), this.delta)) {
         change = oldDelta.diff(this.delta, cursorIndex);
       }
     }
@@ -242,12 +240,12 @@ function combineFormats(formats, combined) {
 function normalizeDelta(delta) {
   return delta.reduce(function(delta, op) {
     if (op.insert === 1) {
-      let attributes = clone(op.attributes);
+      let attributes = cloneDeep(op.attributes);
       delete attributes['image'];
       return delta.insert({ image: op.attributes.image }, attributes);
     }
     if (op.attributes != null && (op.attributes.list === true || op.attributes.bullet === true)) {
-      op = clone(op);
+      op = cloneDeep(op);
       if (op.attributes.list) {
         op.attributes.list = 'ordered';
       } else {

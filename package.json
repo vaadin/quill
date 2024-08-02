@@ -32,12 +32,12 @@
     }
   },
   "dependencies": {
-    "clone": "^2.1.1",
-    "deep-equal": "^1.0.1",
     "eventemitter3": "^2.0.3",
-    "extend": "^3.0.1",
+    "lodash.clonedeep": "^4.5.0",
+    "lodash.isequal": "^4.5.0",
+    "lodash.merge": "^4.5.0",
     "parchment": "^1.1.4",
-    "quill-delta": "^3.6.2"
+    "quill-delta": "^4.2.2"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",

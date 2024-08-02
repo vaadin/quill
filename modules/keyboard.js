@@ -1,8 +1,7 @@
-import clone from 'clone';
-import equal from 'deep-equal';
-import extend from 'extend';
-import Delta from 'quill-delta';
-import DeltaOp from 'quill-delta/lib/op';
+import cloneDeep from 'lodash.clonedeep';
+import isEqual from 'lodash.isequal';
+import merge from 'lodash.merge';
+import Delta, { AttributeMap } from 'quill-delta';
 import Parchment from 'parchment';
 import Quill from '../core/quill';
 import logger from '../core/logger';
@@ -66,7 +65,7 @@ class Keyboard extends Module {
     if (typeof handler === 'function') {
       handler = { handler: handler };
     }
-    binding = extend(binding, context, handler);
+    binding = merge(binding, context, handler);
     this.bindings[binding.key] = this.bindings[binding.key] || [];
     this.bindings[binding.key].push(binding);
   }
@@ -110,7 +109,7 @@ class Keyboard extends Module {
           if (!Object.keys(binding.format).every(function(name) {
             if (binding.format[name] === true) return curContext.format[name] != null;
             if (binding.format[name] === false) return curContext.format[name] == null;
-            return equal(binding.format[name], curContext.format[name]);
+            return isEqual(binding.format[name], curContext.format[name]);
           })) {
             return false;
           }
@@ -220,7 +219,7 @@ Keyboard.DEFAULTS = {
       format: { list: 'checked' },
       handler: function(range) {
         let [line, offset] = this.quill.getLine(range.index);
-        let formats = extend({}, line.formats(), { list: 'checked' });
+        let formats = merge({}, line.formats(), { list: 'checked' });
         let delta = new Delta().retain(range.index)
                                .insert('\n', formats)
                                .retain(line.length() - offset - 1)
@@ -344,7 +343,7 @@ function handleBackspace(range, context) {
     if (prev != null && prev.length() > 1) {
       let curFormats = line.formats();
       let prevFormats = this.quill.getFormat(range.index-1, 1);
-      formats = DeltaOp.attributes.diff(curFormats, prevFormats) || {};
+      formats = AttributeMap.diff(curFormats, prevFormats) || {};
     }
   }
   // Check for astral symbols
@@ -472,7 +471,7 @@ function normalize(binding) {
     return normalize({ key: binding });
   }
   if (typeof binding === 'object') {
-    binding = clone(binding, false);
+    binding = cloneDeep(binding, false);
   }
   if (typeof binding.key === 'string') {
     if (Keyboard.keys[binding.key.toUpperCase()] != null) {

@@ -1,4 +1,4 @@
-import extend from 'extend';
+import merge from 'lodash.merge';
 import Delta from 'quill-delta';
 import Parchment from 'parchment';
 import Quill from '../core/quill';
@@ -159,7 +159,7 @@ function applyFormat(delta, format, value) {
       if (op.attributes && op.attributes[format]) {
         return delta.push(op);
       } else {
-        return delta.insert(op.insert, extend({}, {[format]: value}, op.attributes));
+        return delta.insert(op.insert, merge({}, {[format]: value}, op.attributes));
       }
     }, new Delta());
   }

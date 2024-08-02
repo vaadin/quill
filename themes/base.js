@@ -1,4 +1,4 @@
-import extend from 'extend';
+import merge from 'lodash.merge';
 import Delta from 'quill-delta';
 import Emitter from '../core/emitter';
 import Keyboard from '../modules/keyboard';
@@ -111,7 +111,7 @@ class BaseTheme extends Theme {
     this.quill.on(Emitter.events.EDITOR_CHANGE, update);
   }
 }
-BaseTheme.DEFAULTS = extend(true, {}, Theme.DEFAULTS, {
+BaseTheme.DEFAULTS = merge({}, Theme.DEFAULTS, {
   modules: {
     toolbar: {
       handlers: {

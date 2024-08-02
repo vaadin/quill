@@ -1,11 +1,11 @@
 import './polyfill';
+import merge from 'lodash.merge';
 import Delta from 'quill-delta';
 import Editor from './editor';
 import Emitter from './emitter';
 import Module from './module';
 import Parchment from 'parchment';
 import Selection, { Range } from './selection';
-import extend from 'extend';
 import logger from './logger';
 import Theme from './theme';
 
@@ -369,7 +369,7 @@ Quill.imports = {
 
 
 function expandConfig(container, userConfig) {
-  userConfig = extend(true, {
+  userConfig = merge({
     container: container,
     modules: {
       clipboard: true,
@@ -385,7 +385,7 @@ function expandConfig(container, userConfig) {
       throw new Error(`Invalid theme ${userConfig.theme}. Did you register it?`);
     }
   }
-  let themeConfig = extend(true, {}, userConfig.theme.DEFAULTS);
+  let themeConfig = merge({}, userConfig.theme.DEFAULTS);
   [themeConfig, userConfig].forEach(function(config) {
     config.modules = config.modules || {};
     Object.keys(config.modules).forEach(function(module) {
@@ -411,7 +411,7 @@ function expandConfig(container, userConfig) {
       container: userConfig.modules.toolbar
     };
   }
-  userConfig = extend(true, {}, Quill.DEFAULTS, { modules: moduleConfig }, themeConfig, userConfig);
+  userConfig = merge({}, Quill.DEFAULTS, { modules: moduleConfig }, themeConfig, userConfig);
   ['bounds', 'container', 'scrollingContainer'].forEach(function(key) {
     if (typeof userConfig[key] === 'string') {
       userConfig[key] = document.querySelector(userConfig[key]);

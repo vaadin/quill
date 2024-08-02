@@ -3,7 +3,7 @@ import Emitter from '../../core/emitter';
 import Selection from '../../core/selection';
 import Scroll from '../../blots/scroll';
 import Quill from '../../core/quill';
-import equal from 'deep-equal';
+import isEqual from 'lodash.isequal';
 
 
 let div = document.createElement('div');
@@ -79,7 +79,7 @@ function compareNodes(node1, node2, ignoredAttributes = []) {
         return attr;
       }, {});
     });
-    if (!equal(attr1, attr2)) {
+    if (!isEqual(attr1, attr2)) {
       return `Expected attributes ${jasmine.pp(attr1)} to equal ${jasmine.pp(attr2)}`;
     }
     if (node1.childNodes.length !== node2.childNodes.length) {
