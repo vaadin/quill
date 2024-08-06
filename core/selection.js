@@ -1,6 +1,6 @@
+import cloneDeep from 'lodash.clonedeep';
+import isEqual from 'lodash.isequal';
 import Parchment from 'parchment';
-import clone from 'clone';
-import equal from 'deep-equal';
 import Emitter from './emitter';
 import logger from './logger';
 import { ShadowSelection } from './shadow-selection-polyfill';
@@ -340,11 +340,11 @@ class Selection {
     if (this.lastRange != null) {
       this.savedRange = this.lastRange;
     }
-    if (!equal(oldRange, this.lastRange)) {
+    if (!isEqual(oldRange, this.lastRange)) {
       if (!this.composing && nativeRange != null && nativeRange.native.collapsed && nativeRange.start.node !== this.cursor.textNode) {
         this.cursor.restore();
       }
-      let args = [Emitter.events.SELECTION_CHANGE, clone(this.lastRange), clone(oldRange), source];
+      let args = [Emitter.events.SELECTION_CHANGE, cloneDeep(this.lastRange), cloneDeep(oldRange), source];
       this.emitter.emit(Emitter.events.EDITOR_CHANGE, ...args);
       if (source !== Emitter.sources.SILENT) {
         this.emitter.emit(...args);

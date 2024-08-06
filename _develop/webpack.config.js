@@ -1,21 +1,26 @@
-var path = require('path');
-var pkg = require('../package.json');
-var webpack = require('webpack');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+/* eslint-env node */
+const { BannerPlugin, DefinePlugin } = require('webpack');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+const { readFileSync } = require('fs');
+const { join, resolve } = require('path');
 
-var bannerPack = new webpack.BannerPlugin({
-  banner:
-    'Quill Editor v' + pkg.version + '\n' +
-    'https://quilljs.com/\n' +
-    'Copyright (c) 2014, Jason Chen\n' +
+const pkg = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'));
+
+const bannerPack = new BannerPlugin({
+  banner: [
+    `Quill Editor v${pkg.version}`,
+    pkg.homepage,
+    'Copyright (c) 2014, Jason Chen',
     'Copyright (c) 2013, salesforce.com',
-  entryOnly: true
+  ].join('\n'),
+  entryOnly: true,
 });
-var constantPack = new webpack.DefinePlugin({
-  QUILL_VERSION: JSON.stringify(pkg.version)
+const constantPack = new DefinePlugin({
+  QUILL_VERSION: JSON.stringify(pkg.version),
 });
 
-var source = [
+const source = [
   'quill.js',
   'core.js',
   'vaadin-quill.js',
@@ -27,103 +32,82 @@ var source = [
   'themes',
   'ui'
 ].map(function(file) {
-  return path.resolve(__dirname, '..', file);
+  return resolve(__dirname, '..', file);
 });
 
+const jsRules = {
+  test: /\.js$/,
+  include: source,
+  use: ['babel-loader'],
+};
+
+const sourceMapRules = {
+  test: /\.js$/,
+  enforce: 'pre',
+  use: ['source-map-loader'],
+};
+
+const svgRules = {
+  test: /\.svg$/,
+  include: [resolve(__dirname, 'src/assets/icons')],
+  use: [
+    {
+      loader: 'html-loader',
+      options: {
+        minimize: true,
+      },
+    },
+  ],
+};
+
+const stylRules = {
+  test: /\.styl$/,
+  include: [resolve(__dirname, 'src/assets')],
+  use: [MiniCssExtractPlugin.loader, 'css-loader', 'stylus-loader'],
+};
 
 module.exports = function(env) {
   let config = {
-    context: path.resolve(__dirname, '..'),
+    context: resolve(__dirname, '..'),
     entry: {
-      'quill.js': ['./quill.js'],
-      'quill.core.js': ['./core.js'],
+      // 'quill.js': ['./quill.js'],
+      // 'quill.core.js': ['./core.js'],
       'vaadin-quill.js': ['./vaadin-quill.js'],
-      'quill.core': './assets/core.styl',
-      'quill.bubble': './assets/bubble.styl',
-      'quill.snow': './assets/snow.styl',
-      'unit.js': './test/unit.js'
+      // 'quill.core': './assets/core.styl',
+      // 'quill.bubble': './assets/bubble.styl',
+      // 'quill.snow': './assets/snow.styl',
+      // 'unit.js': './test/unit.js'
     },
     output: {
       filename: '[name]',
-      library: 'Quill',
-      libraryExport: 'default',
-      libraryTarget: 'umd',
-      path: path.resolve(__dirname, '../dist/')
+      library: {
+        name: 'Quill',
+        type: 'umd',
+        export: 'default',
+      },
+      path: resolve(__dirname, '../dist/'),
+      clean: true,
+    },
+    mode: 'development',
+    devtool: 'source-map',
+    optimization: {
+      minimize: false
     },
     resolve: {
-      alias: {
-        'parchment': path.resolve(__dirname, '../node_modules/parchment/src/parchment')
-      },
-      extensions: ['.js', '.styl', '.ts']
+      extensions: ['.js', '.styl']
     },
     module: {
-      rules: [{
-        test: /\.js$/,
-        use: ['eslint-loader'],
-        include: source,
-        enforce: 'pre'
-      }, {
-        test: /\.ts$/,
-        use: [{
-          loader: 'ts-loader',
-          options: {
-            compilerOptions: {
-              declaration: false,
-              target: 'es5',
-              module: 'commonjs'
-            },
-            transpileOnly: true
-          }
-        }]
-      }, {
-        test: /\.styl$/,
-        include: [
-          path.resolve(__dirname, '../assets')
-        ],
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: [
-            'css-loader',
-            'stylus-loader'
-          ]
-        })
-      }, {
-        test: /\.svg$/,
-        include: [
-          path.resolve(__dirname, '../assets/icons')
-        ],
-        use: [{
-          loader: 'html-loader',
-          options: {
-            minimize: true
-          }
-        }]
-      }, {
-        test: /\.js$/,
-        include: source,
-        use: [{
-          loader: 'babel-loader',
-          options: {
-            presets: ['es2015']
-          }
-        }]
-      }],
-      noParse: [
-        /\/node_modules\/clone\/clone\.js$/,
-        /\/node_modules\/eventemitter3\/index\.js$/,
-        /\/node_modules\/extend\/index\.js$/
-      ]
+      rules: [jsRules, stylRules, svgRules, sourceMapRules],
     },
     plugins: [
       bannerPack,
       constantPack,
-      new ExtractTextPlugin({
-        filename: '[name].css',
-        allChunks: true
-      })
+      new MiniCssExtractPlugin({
+        filename: '[name]',
+      }),
     ],
     devServer: {
-      contentBase: path.resolve(__dirname, '../dist'),
+      contentBase: resolve(__dirname, '../dist'),
       hot: false,
       port: process.env.npm_package_config_ports_webpack,
       stats: 'minimal',
@@ -131,30 +115,22 @@ module.exports = function(env) {
     }
   };
 
-  if (env && env.dev) {
-    config.module.rules = config.module.rules.slice(1);   // Remove linter
-    config.module.rules[3].use[0].options = {
-      plugins: ['transform-es2015-modules-commonjs']
-    };
+  if (process.env.BUILD_ENV === 'legacy') {
+    config.target = ['web', 'es5'];
   }
 
   if (env && env.minimize) {
     config.entry = {
-      'quill.min.js': './quill.js',
+      // 'quill.min.js': './quill.js',
       'vaadin-quill.min.js': './vaadin-quill.js'
     };
-    config.plugins.push(
-      new webpack.optimize.UglifyJsPlugin({
-        sourceMap: true
+    config.mode = 'production';
+    config.optimization.minimize = true;
+    config.optimization.minimizer = [
+      new TerserPlugin({
+        extractComments: false,
       })
-    );
-    config.devtool = 'source-map';
-  }
-
-  if (env && env.coverage) {
-    config.module.rules[4].use[0].options = {
-      plugins: ['istanbul', 'transform-es2015-modules-commonjs']
-    };
+    ];
   }
 
   return config;

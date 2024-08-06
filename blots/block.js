@@ -1,4 +1,4 @@
-import extend from 'extend';
+import merge from 'lodash.merge';
 import Delta from 'quill-delta';
 import Parchment from 'parchment';
 import Break from './break';
@@ -16,7 +16,7 @@ class BlockEmbed extends Parchment.Embed {
   }
 
   delta() {
-    return new Delta().insert(this.value(), extend(this.formats(), this.attributes.values()));
+    return new Delta().insert(this.value(), merge(this.formats(), this.attributes.values()));
   }
 
   format(name, value) {
@@ -162,7 +162,7 @@ Block.allowedChildren = [Inline, Parchment.Embed, TextBlot];
 function bubbleFormats(blot, formats = {}) {
   if (blot == null) return formats;
   if (typeof blot.formats === 'function') {
-    formats = extend(formats, blot.formats());
+    formats = merge(formats, blot.formats());
   }
   if (blot.parent == null || blot.parent.blotName == 'scroll' || blot.parent.statics.scope !== blot.statics.scope) {
     return formats;
