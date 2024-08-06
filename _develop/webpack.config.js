@@ -96,7 +96,6 @@ module.exports = function(env) {
     resolve: {
       extensions: ['.js', '.styl']
     },
-    target: ['web', 'es5'],
     module: {
       rules: [jsRules, stylRules, svgRules, sourceMapRules],
     },
@@ -115,6 +114,10 @@ module.exports = function(env) {
       disableHostCheck: true
     }
   };
+
+  if (process.env.BUILD_ENV === 'legacy') {
+    config.target = ['web', 'es5'];
+  }
 
   if (env && env.minimize) {
     config.entry = {
