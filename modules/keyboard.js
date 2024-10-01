@@ -366,7 +366,7 @@ function handleDelete(range, context) {
     if (next) {
       let curFormats = line.formats();
       let nextFormats = this.quill.getFormat(range.index, 1);
-      formats = DeltaOp.attributes.diff(curFormats, nextFormats) || {};
+      formats = AttributeMap.diff(curFormats, nextFormats) || {};
       nextLength = next.length();
     }
   }
@@ -382,7 +382,7 @@ function handleDeleteRange(range) {
   if (lines.length > 1) {
     let firstFormats = lines[0].formats();
     let lastFormats = lines[lines.length - 1].formats();
-    formats = DeltaOp.attributes.diff(lastFormats, firstFormats) || {};
+    formats = AttributeMap.diff(lastFormats, firstFormats) || {};
   }
   this.quill.deleteText(range, Quill.sources.USER);
   if (Object.keys(formats).length > 0) {
