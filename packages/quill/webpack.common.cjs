@@ -41,6 +41,7 @@ module.exports = {
     'quill.core.css': './src/assets/core.styl',
     'quill.bubble.css': './src/assets/bubble.styl',
     'quill.snow.css': './src/assets/snow.styl',
+    'vaadin-quill': './src/vaadin-quill.ts',
   },
   output: {
     filename: '[name].js',

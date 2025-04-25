@@ -10,8 +10,9 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 describe('uiNode', () => {
   test('extends deadline when multiple possible shortcuts are pressed', async () => {
-    const quill = new Quill(document.createElement('div'));
-    document.body.appendChild(quill.container);
+    const div = document.createElement('div');
+    document.body.appendChild(div);
+    const quill = new Quill(div);
     quill.setContents(
       new Delta().insert('item 1').insert('\n', { list: 'bullet' }),
     );

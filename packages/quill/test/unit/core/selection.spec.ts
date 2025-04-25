@@ -36,12 +36,12 @@ describe('Selection', () => {
   describe('focus()', () => {
     const setupTest = () => {
       const container = document.createElement('div');
+      document.body.appendChild(container);
       const textarea = container.appendChild(
         document.createElement('textarea'),
       );
       const selection = createSelection('<p>0123</p>', container);
 
-      document.body.appendChild(container);
       textarea.focus();
       textarea.select();
       return { selection, textarea };

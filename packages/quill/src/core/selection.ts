@@ -10,6 +10,21 @@ const debug = logger('quill:selection');
 
 type NativeRange = AbstractRange;
 
+const getNativeSelection = (rootNode: Node): globalThis.Selection | null => {
+  try {
+    if (
+      'getSelection' in rootNode &&
+      typeof rootNode.getSelection === 'function'
+    ) {
+      return rootNode.getSelection();
+    } else {
+      return window.getSelection();
+    }
+  } catch {
+    return null;
+  }
+};
+
 interface NormalizedRange {
   start: {
     node: NativeRange['startContainer'];
@@ -42,6 +57,7 @@ class Selection {
   mouseDown: boolean;
 
   root: HTMLElement;
+  rootDocument: Node;
   cursor: Cursor;
   savedRange: Range;
   lastRange: Range | null;
@@ -53,6 +69,7 @@ class Selection {
     this.composing = false;
     this.mouseDown = false;
     this.root = this.scroll.domNode;
+    this.rootDocument = this.root.getRootNode();
     // @ts-expect-error
     this.cursor = this.scroll.create('cursor', this);
     // savedRange is last non-null range
@@ -61,7 +78,7 @@ class Selection {
     this.lastNative = null;
     this.handleComposition();
     this.handleDragging();
-    this.emitter.listenDOM('selectionchange', document, () => {
+    this.emitter.listenDOM('selectionchange', this.rootDocument, () => {
       if (!this.mouseDown && !this.composing) {
         setTimeout(this.update.bind(this, Emitter.sources.USER), 1);
       }
@@ -239,9 +256,27 @@ class Selection {
   }
 
   getNativeRange(): NormalizedRange | null {
-    const selection = document.getSelection();
-    if (selection == null || selection.rangeCount <= 0) return null;
-    const nativeRange = selection.getRangeAt(0);
+    // Each browser engine has a different implementation for retrieving the Range
+    const getNativeRange = (rootNode: Node): globalThis.Range | null => {
+      const selection = getNativeSelection(rootNode);
+      if (!selection?.anchorNode) return null;
+
+      if (
+        selection &&
+        'getComposedRanges' in selection &&
+        typeof selection.getComposedRanges === 'function'
+      ) {
+        // Safari 17+ supports `getComposedRanges()` for range retrieval
+        // See https://caniuse.com/mdn-api_selection_getcomposedranges
+        return selection.getComposedRanges(rootNode)[0];
+      }
+
+      // Chrome and Firefox implement the range API properly in Shadow DOM
+      // https://developer.mozilla.org/en-US/docs/Web/API/Selection/getRangeAt
+      return selection.getRangeAt(0);
+    };
+
+    const nativeRange = getNativeRange(this.rootDocument);
     if (nativeRange == null) return null;
     const range = this.normalizeNative(nativeRange);
     debug.info('getNativeRange', range);
@@ -262,10 +297,11 @@ class Selection {
   }
 
   hasFocus(): boolean {
+    const doc = this.rootDocument as Document;
+
     return (
-      document.activeElement === this.root ||
-      (document.activeElement != null &&
-        contains(this.root, document.activeElement))
+      doc.activeElement === this.root ||
+      (doc.activeElement != null && contains(this.root, doc.activeElement))
     );
   }
 
@@ -372,7 +408,7 @@ class Selection {
     ) {
       return;
     }
-    const selection = document.getSelection();
+    const selection = getNativeSelection(this.rootDocument as Document);
     if (selection == null) return;
     if (startNode != null) {
       if (!this.hasFocus()) this.root.focus({ preventScroll: true });
@@ -399,13 +435,22 @@ class Selection {
           );
           endNode = endNode.parentNode;
         }
-        const range = document.createRange();
-        // @ts-expect-error Fix me later
-        range.setStart(startNode, startOffset);
-        // @ts-expect-error Fix me later
-        range.setEnd(endNode, endOffset);
-        selection.removeAllRanges();
-        selection.addRange(range);
+        // Original implementation relies on Selection.addRange, which does not work
+        // in Webkit with shadow DOM. Use `setBaseAndExtent()` as a workaround.
+        // See https://github.com/slab/quill/issues/2021#issuecomment-1776007758
+        if (
+          startNode &&
+          endNode &&
+          typeof startOffset === 'number' &&
+          typeof endOffset === 'number'
+        ) {
+          selection.setBaseAndExtent(
+            startNode,
+            startOffset,
+            endNode,
+            endOffset,
+          );
+        }
       }
     } else {
       selection.removeAllRanges();

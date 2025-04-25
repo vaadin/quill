@@ -349,7 +349,12 @@ class Quill {
     return modify.call(
       this,
       () => {
-        const range = this.getSelection(true);
+        if (!this.hasFocus()) {
+          this.root.focus({ preventScroll: true });
+          const args = this.selection.rangeToNative(this.selection.savedRange);
+          this.selection.setNativeRange(...args);
+        }
+        const [range] = this.selection.getRange(); // quill.getSelection triggers update
         let change = new Delta();
         if (range == null) return change;
         if (this.scroll.query(name, Parchment.Scope.BLOCK)) {

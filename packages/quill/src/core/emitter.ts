@@ -1,17 +1,14 @@
 import { EventEmitter } from 'eventemitter3';
-import instances from './instances.js';
 import logger from './logger.js';
 
 const debug = logger('quill:events');
 const EVENTS = ['selectionchange', 'mousedown', 'mouseup', 'click'];
+const EMITTERS: Emitter[] = [];
 
 EVENTS.forEach((eventName) => {
   document.addEventListener(eventName, (...args) => {
-    Array.from(document.querySelectorAll('.ql-container')).forEach((node) => {
-      const quill = instances.get(node);
-      if (quill && quill.emitter) {
-        quill.emitter.handleDOM(...args);
-      }
+    EMITTERS.forEach((em) => {
+      em.handleDOM(...args);
     });
   });
 });
@@ -47,6 +44,14 @@ class Emitter extends EventEmitter<string> {
     this.on('error', debug.error);
   }
 
+  connect() {
+    EMITTERS.push(this);
+  }
+
+  disconnect() {
+    EMITTERS.splice(EMITTERS.indexOf(this), 1);
+  }
+
   emit(...args: unknown[]): boolean {
     debug.log.call(debug, ...args);
     // @ts-expect-error
@@ -54,8 +59,29 @@ class Emitter extends EventEmitter<string> {
   }
 
   handleDOM(event: Event, ...args: unknown[]) {
+    const target = event.composedPath()[0];
+    const containsNode = (node: Node, target: Node) => {
+      if (target.getRootNode() === document) {
+        return node.contains(target);
+      }
+
+      while (!node.contains(target)) {
+        const root = target.getRootNode();
+        if (!root) {
+          return false;
+        }
+        const host = (root as ShadowRoot).host;
+        if (!host) {
+          return false;
+        }
+        target = host;
+      }
+
+      return true;
+    };
+
     (this.domListeners[event.type] || []).forEach(({ node, handler }) => {
-      if (event.target === node || node.contains(event.target as Node)) {
+      if (target === node || containsNode(node, target as Node)) {
         handler(event, ...args);
       }
     });
