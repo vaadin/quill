@@ -371,7 +371,11 @@ function convertHTML(
   }
   if (blot instanceof TextBlot) {
     const escapedText = escapeText(blot.value().slice(index, index + length));
-    return escapedText.replaceAll(' ', '&nbsp;');
+    // Based on https://github.com/slab/quill/issues/4509#issuecomment-2521334016
+    return escapedText.replaceAll(
+      /  +/g,
+      (match) => '&nbsp;'.repeat(match.length - 1) + ' ',
+    );
   }
   if (blot instanceof ParentBlot) {
     // TODO fix API
