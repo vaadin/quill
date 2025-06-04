@@ -1,4 +1,4 @@
-import { EventEmitter } from 'eventemitter3';
+import { EventEmitter } from '@electrovir/eventemitter3';
 import logger from './logger.js';
 
 const debug = logger('quill:events');
