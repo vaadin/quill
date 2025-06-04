@@ -264,7 +264,10 @@ class Selection {
       if (
         selection &&
         'getComposedRanges' in selection &&
-        typeof selection.getComposedRanges === 'function'
+        typeof selection.getComposedRanges === 'function' &&
+        // Chrome 137 also has `getComposedRanges()` but it's messed up
+        // when using it on the result of `shadowRoot.getSelection()`
+        !(rootNode instanceof ShadowRoot && 'getSelection' in rootNode)
       ) {
         // Safari 17+ supports `getComposedRanges()` for range retrieval
         // See https://caniuse.com/mdn-api_selection_getcomposedranges
