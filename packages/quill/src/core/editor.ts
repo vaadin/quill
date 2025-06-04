@@ -1,4 +1,3 @@
-import { cloneDeep, isEqual, merge } from 'lodash-es';
 import { LeafBlot, EmbedBlot, Scope, ParentBlot } from 'parchment';
 import type { Blot } from 'parchment';
 import Delta, { AttributeMap, Op } from 'quill-delta-es';
@@ -8,6 +7,8 @@ import CursorBlot from '../blots/cursor.js';
 import type Scroll from '../blots/scroll.js';
 import TextBlot, { escapeText } from '../blots/text.js';
 import { Range } from './selection.js';
+import cloneDeep from './utils/cloneDeep.js';
+import isEqual from './utils/isEqual.js';
 
 const ASCII = /^[ -~]*$/;
 
@@ -47,11 +48,11 @@ class Editor {
               !!this.scroll.descendant(BlockEmbed, index)[0]);
           this.scroll.insertAt(index, text);
           const [line, offset] = this.scroll.line(index);
-          let formats = merge({}, bubbleFormats(line));
+          let formats = Object.assign({}, bubbleFormats(line));
           if (line instanceof Block) {
             const [leaf] = line.descendant(LeafBlot, offset);
             if (leaf) {
-              formats = merge(formats, bubbleFormats(leaf));
+              formats = Object.assign(formats, bubbleFormats(leaf));
             }
           }
           attributes = AttributeMap.diff(formats, attributes) || {};
@@ -85,7 +86,7 @@ class Editor {
           if (isInlineEmbed) {
             const [leaf] = this.scroll.descendant(LeafBlot, index);
             if (leaf) {
-              const formats = merge({}, bubbleFormats(leaf));
+              const formats = Object.assign({}, bubbleFormats(leaf));
               attributes = AttributeMap.diff(formats, attributes) || {};
             }
           }

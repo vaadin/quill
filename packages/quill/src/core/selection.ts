@@ -1,10 +1,11 @@
 import { LeafBlot, Scope } from 'parchment';
-import { cloneDeep, isEqual } from 'lodash-es';
 import Emitter from './emitter.js';
 import type { EmitterSource } from './emitter.js';
 import logger from './logger.js';
 import type Cursor from '../blots/cursor.js';
 import type Scroll from '../blots/scroll.js';
+import cloneDeep from './utils/cloneDeep.js';
+import isEqual from './utils/isEqual.js';
 
 const debug = logger('quill:selection');
 

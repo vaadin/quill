@@ -1,4 +1,3 @@
-import { cloneDeep, isEqual } from 'lodash-es';
 import Delta, { AttributeMap } from 'quill-delta-es';
 import { EmbedBlot, Scope, TextBlot } from 'parchment';
 import type { Blot, BlockBlot } from 'parchment';
@@ -7,6 +6,7 @@ import logger from '../core/logger.js';
 import Module from '../core/module.js';
 import type { BlockEmbed } from '../blots/block.js';
 import type { Range } from '../core/selection.js';
+import isEqual from '../core/utils/isEqual.js';
 
 const debug = logger('quill:keyboard');
 
@@ -787,7 +787,7 @@ function normalize(binding: Binding): BindingObject | null {
   if (typeof binding === 'string' || typeof binding === 'number') {
     binding = { key: binding };
   } else if (typeof binding === 'object') {
-    binding = cloneDeep(binding);
+    binding = { ...binding };
   } else {
     return null;
   }

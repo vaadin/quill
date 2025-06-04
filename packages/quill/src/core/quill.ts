@@ -1,4 +1,3 @@
-import { merge } from 'lodash-es';
 import * as Parchment from 'parchment';
 import type { Op } from 'quill-delta-es';
 import Delta from 'quill-delta-es';
@@ -826,12 +825,11 @@ function expandConfig(
     };
   }
 
-  const modules: ExpandedQuillOptions['modules'] = merge(
-    {},
-    expandModuleConfig(quillModuleDefaults),
-    expandModuleConfig(themeModuleDefaults),
-    userModuleOptions,
-  );
+  const modules: ExpandedQuillOptions['modules'] = {
+    ...expandModuleConfig(quillModuleDefaults),
+    ...expandModuleConfig(themeModuleDefaults),
+    ...userModuleOptions,
+  };
 
   const config = {
     ...quillDefaults,
@@ -869,7 +867,7 @@ function expandConfig(
         return {
           ...modulesWithDefaults,
           // @ts-expect-error
-          [name]: merge({}, moduleClass.DEFAULTS || {}, value),
+          [name]: { ...(moduleClass.DEFAULTS || {}), ...value },
         };
       },
       {},
