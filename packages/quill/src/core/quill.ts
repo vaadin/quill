@@ -1,6 +1,6 @@
 import * as Parchment from 'parchment';
-import type { Op } from 'quill-delta-es';
-import Delta from 'quill-delta-es';
+import type { Op } from '@quill-next/delta-es';
+import Delta from '@quill-next/delta-es';
 import type { BlockEmbed } from '../blots/block.js';
 import type Block from '../blots/block.js';
 import type Scroll from '../blots/scroll.js';

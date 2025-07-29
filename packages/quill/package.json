@@ -8,9 +8,9 @@
   "type": "module",
   "dependencies": {
     "@electrovir/eventemitter3": "^5.0.1",
+    "@quill-next/delta-es": "^5.2.12",
     "lodash-es": "^4.17.21",
-    "parchment": "^3.0.0",
-    "quill-delta-es": "^5.2.11"
+    "parchment": "^3.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.23.9",

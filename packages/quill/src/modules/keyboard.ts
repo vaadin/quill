@@ -1,4 +1,4 @@
-import Delta, { AttributeMap } from 'quill-delta-es';
+import Delta, { AttributeMap } from '@quill-next/delta-es';
 import { EmbedBlot, Scope, TextBlot } from 'parchment';
 import type { Blot, BlockBlot } from 'parchment';
 import Quill from '../core/quill.js';
